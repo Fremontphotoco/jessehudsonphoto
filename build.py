@@ -105,8 +105,9 @@ def dims(path):
     return w, h
 
 def web_name(folder, src):
-    base = re.sub(r'[^A-Za-z0-9._-]+', '-', os.path.splitext(os.path.basename(src))[0]).strip('-').lower() or "image"
-    return f"{folder}/{base}"
+    stem, ext = os.path.splitext(os.path.basename(src))
+    base = re.sub(r'[^A-Za-z0-9._-]+', '-', stem).strip('-').lower() or "image"
+    return f"{folder}/{base}-{ext.lstrip('.').lower() or 'img'}"   # keep the extension in the name so 001.jpg and 001.jpeg stay distinct
 
 def make_images(jobs):
     """jobs: list of (src, relname). Produces img/<rel>.jpg and img/<rel>_t.jpg; returns {rel: (w,h)}."""
