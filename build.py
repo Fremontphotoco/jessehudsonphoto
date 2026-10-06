@@ -25,7 +25,6 @@ COMMERCIAL = [
     ("food", "Food", "food", ""),
     ("conference", "Conference", "conference", ""),
     ("campaigns", "Campaigns", "press-campaigns", ""),
-    ("nightlife", "Nightlife", "nightlife-overview", ""),
     ("cadaver-lab", "Cadaver Lab", "cadaver-lab", ""),
 ]
 CONCEPTUAL = [
@@ -42,7 +41,8 @@ CONCEPTUAL = [
     ("landscape", "Landscape", "landscape", "Travel and landscape photography."),
 ]
 EVENTS = [
-    ("overview", "Event Overview", "events-overview", "An overview of event photography."),
+    ("overview", "Event Overview", "nightlife-overview", "Nightlife and event photography in Las Vegas."),
+    ("overview-2018", "Event Overview, 2014 to 2018", "events-overview", "Earlier event work."),
     ("edc-2026", "EDC 2026", "edc-2026", ""),
     ("crykits-playhouse-2022", "Crykits Playhouse 2022", "crykits-playhouse-20220", ""),
     ("downtown-las-vegas", "Downtown Las Vegas", "downtown-las-vegas", ""),
@@ -363,7 +363,7 @@ def build(images=True):
     featured = [("commercial", "Commercial Overview", "commercial-overview"), ("conceptual", "Conceptual", "conceptual"),
                 ("conceptual", "Crack The Surface", "crackthesurface"), ("commercial", "Cocktails", "cocktails"),
                 ("conceptual", "Portraiture", "portraiture"), ("commercial", "Architecture", "architecture"),
-                ("events", "Event Overview", "events-overview"), ("commercial", "Nightlife", "nightlife-overview"),
+                ("events", "Event Overview", "nightlife-overview"),
                 ("conceptual", "Art", "art"), ("commercial", "Product", "product"), ("events", "EDC 2026", "edc-2026")]
     slug_of = {folder: f"/{sec}/{slug}/" for sec, _, items in SECTIONS for slug, _, folder, _ in items}
     slides = [dict(rels=galleries[f], title=t, href=slug_of[f]) for sec, t, f in featured if cover(f)]
