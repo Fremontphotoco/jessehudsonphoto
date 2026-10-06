@@ -175,7 +175,8 @@ nav a{display:block;color:var(--mute);transition:color .2s}nav a:hover,nav a.on{
 .show{position:relative}
 .stage{position:sticky;top:0;height:100vh;height:100dvh;display:flex;align-items:center;justify-content:center;padding:calc(var(--pad) + 60px) var(--pad) calc(var(--pad) + 40px)}
 .stage .frame{position:relative;width:min(100%,var(--max));height:100%;display:flex;align-items:center;justify-content:center}
-.stage img{position:absolute;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;opacity:0;transform:scale(.985);transition:opacity .6s ease,transform .9s ease;box-shadow:0 30px 80px -30px rgba(0,0,0,.35)}
+.stage .set{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.stage img{position:absolute;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;opacity:0;transform:scale(.985);transition:opacity .6s ease,transform .9s ease;box-shadow:0 30px 80px -30px rgba(0,0,0,.35);cursor:e-resize}
 .stage img.on{opacity:1;transform:none}
 .steps{position:relative;margin-top:-100vh;margin-top:-100dvh}
 .step{height:100vh;height:100dvh}
@@ -185,8 +186,8 @@ nav a{display:block;color:var(--mute);transition:color .2s}nav a:hover,nav a.on{
 .list{list-style:none;margin:0 0 14px;padding:0}
 .list li{color:var(--mute);transition:color .25s,font-size .25s;font-size:14px;line-height:1.5}
 .list li.on{color:var(--fg);font-size:clamp(18px,2vw,26px);letter-spacing:-.02em;line-height:1.2;margin:4px 0}
-.list a{pointer-events:auto}
-.hint{color:var(--fg);font-size:12px}
+.list a,.hint a{pointer-events:auto}
+.hint{color:var(--fg);font-size:12px}.hint a{text-decoration:underline;text-underline-offset:3px}
 .count{color:var(--fg);font-size:12px;margin-bottom:6px}
 /* preloader */
 #pre{position:fixed;inset:0;background:var(--bg);z-index:60;display:flex;align-items:center;justify-content:center;transition:opacity .7s ease}
@@ -220,11 +221,36 @@ JS = """
 (function(){
 var t=document.querySelector('.theme');try{var saved=localStorage.getItem('theme');if(saved)document.documentElement.setAttribute('data-theme',saved);}catch(e){}
 if(t){t.addEventListener('click',function(){var cur=document.documentElement.getAttribute('data-theme');var dark=cur?cur==='dark':matchMedia('(prefers-color-scheme:dark)').matches;var next=dark?'light':'dark';document.documentElement.setAttribute('data-theme',next);try{localStorage.setItem('theme',next)}catch(e){}});}
-/* showcase */
-var imgs=[].slice.call(document.querySelectorAll('.stage img')),steps=[].slice.call(document.querySelectorAll('.step')),items=[].slice.call(document.querySelectorAll('.list li')),cnt=document.querySelector('.count');
-function go(n){imgs.forEach(function(im,k){im.classList.toggle('on',k===n);});items.forEach(function(li,k){li.classList.toggle('on',k===n);});if(cnt)cnt.textContent=(n+1)+' / '+imgs.length;[n,n+1,n+2,n-1].forEach(function(j){var nx=imgs[j];if(nx&&nx.dataset.src){nx.src=nx.dataset.src;delete nx.dataset.src;}});}
-if(steps.length){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)go(+e.target.dataset.i);});},{threshold:.5});steps.forEach(function(s){io.observe(s);});go(0);
-items.forEach(function(li,k){var a=li.querySelector('a');if(a&&a.getAttribute('href')==='#')a.addEventListener('click',function(e){e.preventDefault();steps[k].scrollIntoView({behavior:'smooth'});});});var cur=0,lock=0;function jump(d){var n=Math.min(Math.max(cur+d,0),steps.length-1);if(n===cur)return;cur=n;steps[n].scrollIntoView({behavior:'smooth'});}var io2=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)cur=+e.target.dataset.i;});},{threshold:.5});steps.forEach(function(st){io2.observe(st);});document.addEventListener('keydown',function(e){if(document.getElementById('lb')&&document.getElementById('lb').classList.contains('on'))return;if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){e.preventDefault();jump(1);}else if(e.key==='ArrowLeft'||e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();jump(-1);}else if(e.key==='Home'){jump(-cur);}else if(e.key==='End'){jump(steps.length);}});window.addEventListener('wheel',function(e){if(Math.abs(e.deltaX)<=Math.abs(e.deltaY)||Math.abs(e.deltaX)<25)return;e.preventDefault();var now=Date.now();if(now-lock<700)return;lock=now;jump(e.deltaX>0?1:-1);},{passive:false});var tx=null;window.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;},{passive:true});window.addEventListener('touchend',function(e){if(tx===null)return;var dx=e.changedTouches[0].clientX-tx;tx=null;if(Math.abs(dx)>60)jump(dx<0?1:-1);},{passive:true});}
+/* showcase: vertical = series (steps), horizontal = photos within the active series */
+var steps=[].slice.call(document.querySelectorAll('.step')),items=[].slice.call(document.querySelectorAll('.list li')),cnt=document.querySelector('.count'),openA=document.querySelector('.hint a.open');
+var sets=[].slice.call(document.querySelectorAll('.stage .set'));
+var flat=[].slice.call(document.querySelectorAll('.stage img'));
+var cur=0,pos=[],lock=0;sets.forEach(function(){pos.push(0)});
+function load(im){if(im&&im.dataset.src){im.src=im.dataset.src;delete im.dataset.src;}}
+function render(){
+  if(sets.length){sets.forEach(function(st,k){var ims=st.children;for(var j=0;j<ims.length;j++){ims[j].classList.toggle('on',k===cur&&j===pos[cur]);}
+      if(k===cur){load(ims[pos[k]]);load(ims[pos[k]+1]);load(ims[pos[k]+2]);load(ims[pos[k]-1]);}else if(Math.abs(k-cur)===1){load(ims[0]);}});
+    if(cnt)cnt.textContent=(pos[cur]+1)+' / '+sets[cur].children.length;
+    if(openA)openA.setAttribute('href',sets[cur].dataset.href);}
+  else{flat.forEach(function(im,k){im.classList.toggle('on',k===cur);});[cur,cur+1,cur+2,cur-1].forEach(function(j){load(flat[j])});if(cnt)cnt.textContent=(cur+1)+' / '+flat.length;}
+  items.forEach(function(li,k){li.classList.toggle('on',k===cur);});
+}
+function series(d){var n=Math.min(Math.max(cur+d,0),steps.length-1);if(n===cur)return;cur=n;if(sets.length)pos[cur]=0;render();steps[n].scrollIntoView({behavior:'smooth'});}
+function photo(d){if(!sets.length){series(d);return;}var n=sets[cur].children.length;var p=Math.min(Math.max(pos[cur]+d,0),n-1);if(p===pos[cur])return;pos[cur]=p;render();}
+if(steps.length){
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){var n=+e.target.dataset.i;if(n!==cur){cur=n;if(sets.length)pos[cur]=0;render();}}});},{threshold:.5});
+  steps.forEach(function(st){io.observe(st);});render();
+  items.forEach(function(li,k){var a=li.querySelector('a');if(a&&a.getAttribute('href')==='#')a.addEventListener('click',function(e){e.preventDefault();series(k-cur);});});
+  document.addEventListener('keydown',function(e){var lb=document.getElementById('lb');if(lb&&lb.classList.contains('on'))return;
+    if(e.key==='ArrowRight'){e.preventDefault();photo(1);}else if(e.key==='ArrowLeft'){e.preventDefault();photo(-1);}
+    else if(e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){e.preventDefault();series(1);}else if(e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();series(-1);}
+    else if(e.key==='Home'){series(-cur);}else if(e.key==='End'){series(steps.length);}
+    else if(e.key==='Enter'&&sets.length){location.href=sets[cur].dataset.href;}});
+  window.addEventListener('wheel',function(e){if(Math.abs(e.deltaX)<=Math.abs(e.deltaY)||Math.abs(e.deltaX)<25)return;e.preventDefault();var now=Date.now();if(now-lock<500)return;lock=now;photo(e.deltaX>0?1:-1);},{passive:false});
+  var tx=null,ty=null;window.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+  window.addEventListener('touchend',function(e){if(tx===null)return;var dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;tx=null;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy))photo(dx<0?1:-1);},{passive:true});
+  var stage=document.querySelector('.stage');if(stage)stage.addEventListener('click',function(e){if(e.target.tagName!=='IMG')return;var r=stage.getBoundingClientRect();if(e.clientX<r.left+r.width*.3)photo(-1);else photo(1);});
+}
 /* preloader */
 var pre=document.getElementById('pre');
 if(pre){var pct=pre.querySelector('.pct'),pile=[].slice.call(pre.querySelectorAll('.pile img')),n=0,total=Math.max(pile.length,1),shown=false;
@@ -271,18 +297,21 @@ def page(title, body, path, desc="", section=None, image=None, pre=""):
 <script src="/app.js?v={VER}" defer></script>
 </body></html>"""
 
-def showcase(slides, list_links=True, counter=False, corner_tl="", corner_br=""):
-    """slides: list of dicts {rel, title, href, meta_l, meta_r}. One sticky stage + N scroll steps."""
-    imgs = "".join(
-        f'<img {"src" if k < 2 else "data-src"}="/img/{s["rel"]}.jpg" alt="{html.escape(s["title"])}"{" class=on" if k == 0 else ""}>'
-        for k, s in enumerate(slides))
+def showcase(slides, corner_br=""):
+    """slides: list of dicts {rels:[...], title, href}. One sticky stage with a photo set per series + N scroll steps.
+    Vertical scroll / up-down keys move between series; left-right keys or sideways swipe move through the photos of the current series."""
+    sets = []
+    for k, sl in enumerate(slides):
+        imgs = "".join(
+            f'<img {"src" if (k < 2 and j == 0) or (k == 0 and j < 3) else "data-src"}="/img/{r}.jpg" alt="{html.escape(sl["title"])}"{" class=on" if (k == 0 and j == 0) else ""}>'
+            for j, r in enumerate(sl["rels"]))
+        sets.append(f'<div class="set" data-s="{k}" data-href="{sl["href"]}">{imgs}</div>')
     items = "".join(
-        f'<li{" class=on" if k == 0 else ""}><a href="{s["href"] if list_links else "#"}">{html.escape(s["title"])}</a></li>'
-        for k, s in enumerate(slides))
+        f'<li{" class=on" if k == 0 else ""}><a href="{sl["href"]}">{html.escape(sl["title"])}</a></li>'
+        for k, sl in enumerate(slides))
     steps = "".join(f'<div class="step" data-i="{k}"></div>' for k in range(len(slides)))
-    cnt = '<div class="count"></div>' if counter else ""
-    return f"""<section class="show"><div class="stage"><div class="frame">{imgs}</div></div><div class="steps">{steps}</div></section>
-<div class="meta tl">{cnt}<ul class="list">{items}</ul><div class="hint">scroll ↑↓ · ← →</div></div>
+    return f"""<section class="show"><div class="stage"><div class="frame">{"".join(sets)}</div></div><div class="steps">{steps}</div></section>
+<div class="meta tl"><div class="count">1 / {len(slides[0]["rels"])}</div><ul class="list">{items}</ul><div class="hint">↑↓ series · ← → photos · <a class="open" href="{slides[0]["href"]}">open series</a></div></div>
 <div class="meta br">{corner_br}</div>"""
 
 def preloader(rels):
@@ -337,16 +366,16 @@ def build(images=True):
                 ("events", "Event Overview", "events-overview"), ("commercial", "Nightlife", "nightlife-overview"),
                 ("conceptual", "Art", "art"), ("commercial", "Product", "product"), ("events", "EDC 2026", "edc-2026")]
     slug_of = {folder: f"/{sec}/{slug}/" for sec, _, items in SECTIONS for slug, _, folder, _ in items}
-    slides = [dict(rel=cover(f), title=t, href=slug_of[f]) for sec, t, f in featured if cover(f)]
+    slides = [dict(rels=galleries[f], title=t, href=slug_of[f]) for sec, t, f in featured if cover(f)]
     body = showcase(slides, corner_br="Commercial · Conceptual · Events<br>By Jesse Hudson")
-    pre = preloader([s["rel"] for s in slides])
-    write("/", page("Overview", body, "/", "Jesse Hudson, photographer and creative director in Las Vegas, Nevada.", "/", image=f"/img/{slides[0]['rel']}.jpg", pre=pre)); urls.append("/")
+    pre = preloader([s["rels"][0] for s in slides])
+    write("/", page("Overview", body, "/", "Jesse Hudson, photographer and creative director in Las Vegas, Nevada.", "/", image=f"/img/{slides[0]['rels'][0]}.jpg", pre=pre)); urls.append("/")
 
     # sections: showcase of that section's galleries
     for sec, sec_title, items in SECTIONS:
-        slides = [dict(rel=cover(folder), title=title, href=f"/{sec}/{slug}/") for slug, title, folder, blurb in items if cover(folder)]
+        slides = [dict(rels=galleries[folder], title=title, href=f"/{sec}/{slug}/") for slug, title, folder, blurb in items if cover(folder)]
         body = showcase(slides, corner_br=f"{sec_title}<br>{len(slides)} series")
-        write(f"/{sec}/", page(sec_title, body, f"/{sec}/", f"{sec_title} photography by Jesse Hudson.", f"/{sec}/", image=f"/img/{slides[0]['rel']}.jpg")); urls.append(f"/{sec}/")
+        write(f"/{sec}/", page(sec_title, body, f"/{sec}/", f"{sec_title} photography by Jesse Hudson.", f"/{sec}/", image=f"/img/{slides[0]['rels'][0]}.jpg")); urls.append(f"/{sec}/")
         for slug, title, folder, blurb in items:
             rels = galleries[folder]
             if not rels: continue
