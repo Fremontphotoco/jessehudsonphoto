@@ -224,7 +224,7 @@ if(t){t.addEventListener('click',function(){var cur=document.documentElement.get
 var imgs=[].slice.call(document.querySelectorAll('.stage img')),steps=[].slice.call(document.querySelectorAll('.step')),items=[].slice.call(document.querySelectorAll('.list li')),cnt=document.querySelector('.count');
 function go(n){imgs.forEach(function(im,k){im.classList.toggle('on',k===n);});items.forEach(function(li,k){li.classList.toggle('on',k===n);});if(cnt)cnt.textContent=(n+1)+' / '+imgs.length;[n,n+1,n+2,n-1].forEach(function(j){var nx=imgs[j];if(nx&&nx.dataset.src){nx.src=nx.dataset.src;delete nx.dataset.src;}});}
 if(steps.length){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)go(+e.target.dataset.i);});},{threshold:.5});steps.forEach(function(s){io.observe(s);});go(0);
-items.forEach(function(li,k){var a=li.querySelector('a');if(a&&a.getAttribute('href')==='#')a.addEventListener('click',function(e){e.preventDefault();steps[k].scrollIntoView({behavior:'smooth'});});});}
+items.forEach(function(li,k){var a=li.querySelector('a');if(a&&a.getAttribute('href')==='#')a.addEventListener('click',function(e){e.preventDefault();steps[k].scrollIntoView({behavior:'smooth'});});});var cur=0,lock=0;function jump(d){var n=Math.min(Math.max(cur+d,0),steps.length-1);if(n===cur)return;cur=n;steps[n].scrollIntoView({behavior:'smooth'});}var io2=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)cur=+e.target.dataset.i;});},{threshold:.5});steps.forEach(function(st){io2.observe(st);});document.addEventListener('keydown',function(e){if(document.getElementById('lb')&&document.getElementById('lb').classList.contains('on'))return;if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){e.preventDefault();jump(1);}else if(e.key==='ArrowLeft'||e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();jump(-1);}else if(e.key==='Home'){jump(-cur);}else if(e.key==='End'){jump(steps.length);}});window.addEventListener('wheel',function(e){if(Math.abs(e.deltaX)<=Math.abs(e.deltaY)||Math.abs(e.deltaX)<25)return;e.preventDefault();var now=Date.now();if(now-lock<700)return;lock=now;jump(e.deltaX>0?1:-1);},{passive:false});var tx=null;window.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;},{passive:true});window.addEventListener('touchend',function(e){if(tx===null)return;var dx=e.changedTouches[0].clientX-tx;tx=null;if(Math.abs(dx)>60)jump(dx<0?1:-1);},{passive:true});}
 /* preloader */
 var pre=document.getElementById('pre');
 if(pre){var pct=pre.querySelector('.pct'),pile=[].slice.call(pre.querySelectorAll('.pile img')),n=0,total=Math.max(pile.length,1),shown=false;
@@ -282,7 +282,7 @@ def showcase(slides, list_links=True, counter=False, corner_tl="", corner_br="")
     steps = "".join(f'<div class="step" data-i="{k}"></div>' for k in range(len(slides)))
     cnt = '<div class="count"></div>' if counter else ""
     return f"""<section class="show"><div class="stage"><div class="frame">{imgs}</div></div><div class="steps">{steps}</div></section>
-<div class="meta tl">{cnt}<ul class="list">{items}</ul><div class="hint">scroll ↑↓</div></div>
+<div class="meta tl">{cnt}<ul class="list">{items}</ul><div class="hint">scroll ↑↓ · ← →</div></div>
 <div class="meta br">{corner_br}</div>"""
 
 def preloader(rels):
@@ -357,7 +357,7 @@ def build(images=True):
             steps = "".join(f'<div class="step" data-i="{k}"></div>' for k in range(len(rels)))
             grid = gallery_html(folder, meta, rels)
             body = f"""<section class="show"><div class="stage"><div class="frame">{imgs}</div></div><div class="steps">{steps}</div></section>
-<div class="meta tl"><div class="count">1 / {len(rels)}</div><ul class="list">{items_html}</ul><div class="hint">scroll ↑↓ · <a href="#all">view all</a></div></div>
+<div class="meta tl"><div class="count">1 / {len(rels)}</div><ul class="list">{items_html}</ul><div class="hint">scroll ↑↓ · ← → · <a href="#all">view all</a></div></div>
 <div class="meta br">{html.escape(blurb) if blurb else html.escape(title)}<br>By Jesse Hudson</div>
 <div class="page" id="all"><h1>{html.escape(title)}</h1>{f'<p class="lead">{html.escape(blurb)}</p>' if blurb else ''}{grid}</div>"""
             write(f"/{sec}/{slug}/", page(title, body, f"/{sec}/{slug}/", blurb or f"{title}, photography by Jesse Hudson.", f"/{sec}/", image=f"/img/{rels[0]}.jpg")); urls.append(f"/{sec}/{slug}/")
