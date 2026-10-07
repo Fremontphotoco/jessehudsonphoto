@@ -289,7 +289,7 @@ document.addEventListener('keydown',function(e){if(!lb.classList.contains('on'))
 """
 
 VER = hashlib.md5((CSS + JS).encode()).hexdigest()[:8]
-NAV = [("work", "/commercial/"), ("conceptual", "/conceptual/"), ("events", "/events/"), ("about", "/about/"), ("say hello", "/contact/")]
+NAV = [("conceptual", "/conceptual/"), ("work", "/commercial/"), ("events", "/events/"), ("about", "/about/"), ("say hello", "/contact/")]
 
 def page(title, body, path, desc="", section=None, image=None, pre=""):
     nav = "".join(f'<a href="{h}"{" class=on" if (section==h) else ""}>{t}</a>' for t, h in NAV)
@@ -383,15 +383,17 @@ def build(images=True):
         return rels[0] if rels else None
 
     # home: scroll showcase of the strongest galleries
-    featured = [("commercial", "Commercial Overview", "commercial-overview"), ("conceptual", "Conceptual", "conceptual"),
+    featured = [("conceptual", "Conceptual", "conceptual"),
                 ("conceptual", "SHELTER", "shelter"),
-                ("conceptual", "Crack The Surface", "crackthesurface"), ("commercial", "Cocktails", "cocktails"),
-                ("conceptual", "Portraiture", "portraiture"), ("commercial", "Architecture", "architecture"),
-                ("events", "Event Overview", "nightlife-overview"),
-                ("conceptual", "Art", "art"), ("commercial", "Product", "product"), ("events", "EDC 2026", "edc-2026")]
+                ("conceptual", "Crack The Surface", "crackthesurface"),
+                ("conceptual", "Portraiture", "portraiture"),
+                ("conceptual", "Art", "art"),
+                ("commercial", "Commercial Overview", "commercial-overview"), ("commercial", "Cocktails", "cocktails"),
+                ("commercial", "Architecture", "architecture"), ("commercial", "Product", "product"),
+                ("events", "Event Overview", "nightlife-overview"), ("events", "EDC 2026", "edc-2026")]
     slug_of = {folder: f"/{sec}/{slug}/" for sec, _, items in SECTIONS for slug, _, folder, _ in items}
     slides = [dict(rels=galleries[f], title=t, href=slug_of[f]) for sec, t, f in featured if cover(f)]
-    body = showcase(slides, corner_br="Commercial · Conceptual · Events<br>By Jesse Hudson")
+    body = showcase(slides, corner_br="Conceptual · Commercial · Events<br>By Jesse Hudson")
     pre = preloader([s["rels"][0] for s in slides])
     write("/", page("Overview", body, "/", "Jesse Hudson, photographer and creative director in Las Vegas, Nevada.", "/", image=f"/img/{slides[0]['rels'][0]}.jpg", pre=pre)); urls.append("/")
 
