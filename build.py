@@ -75,8 +75,8 @@ EVENTS = [
 # optional videos shown on a gallery page, keyed by export/extra folder.
 # src starting with "/" = self-hosted file from media/ (optional poster third); otherwise a YouTube id.
 GALLERY_VIDEOS = {"shelter": [
-    ("KKmsvpkmudc", "Take a step inside."),
-    ("/media/shelter-interview.mp4", "On SHELTER — cultural historian Brian Paco Álvarez", "/media/shelter-interview-poster.jpg"),
+    ("/media/shelter-interview.mp4", "Take a step inside — on SHELTER with cultural historian Brian Paco Álvarez", "/media/shelter-interview-poster.jpg"),
+    ("KKmsvpkmudc", "Live From Shelter: EP 002 — Eskuche"),
 ]}
 SECTIONS = [("commercial", "Commercial", COMMERCIAL),
             ("conceptual", "Conceptual", CONCEPTUAL),
