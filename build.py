@@ -72,6 +72,8 @@ EVENTS = [
     ("lorde", "Lorde at The Joint 2014", "lorde", ""),
     ("leroy-chops", "Leroy Chops 2014", "new-gallery-1", ""),
 ]
+# optional YouTube embeds shown on a gallery page, keyed by export/extra folder
+GALLERY_VIDEOS = {"shelter": [("KKmsvpkmudc", "Take a step inside.")]}
 SECTIONS = [("commercial", "Commercial", COMMERCIAL),
             ("conceptual", "Conceptual", CONCEPTUAL),
             ("events", "Events", EVENTS)]
@@ -206,6 +208,8 @@ nav a{display:block;color:var(--mute);transition:color .2s}nav a:hover,nav a.on{
 .page h1{font-size:clamp(28px,4vw,54px);font-weight:700;letter-spacing:-.04em;margin:0 0 .5em;line-height:1}
 .lead{color:var(--mute);max-width:62ch;font-size:17px}
 .prose{max-width:66ch;font-size:16px;line-height:1.6}.prose p{margin:0 0 1em}.prose h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:2.4em 0 .8em}
+.video{margin:40px 0 0}.video h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 12px}
+.video iframe{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000}
 .masonry{columns:3 320px;column-gap:14px;margin-top:40px}
 .masonry a{display:block;break-inside:avoid;margin:0 0 14px;background:var(--line)}
 .masonry img{display:block;width:100%;height:auto}
@@ -391,10 +395,12 @@ def build(images=True):
             imgs = "".join(f'<img {"src" if k < 2 else "data-src"}="/img/{r}.jpg" alt=""{" class=on" if k == 0 else ""}>' for k, r in enumerate(rels))
             steps = "".join(f'<div class="step" data-i="{k}"></div>' for k in range(len(rels)))
             grid = gallery_html(folder, meta, rels)
+            video = "".join(f'<div class="video"><h2>{html.escape(label)}</h2><iframe src="https://www.youtube.com/embed/{vid}" loading="lazy" allowfullscreen title="{html.escape(label)}"></iframe></div>'
+                            for vid, label in GALLERY_VIDEOS.get(folder, []))
             body = f"""<section class="show"><div class="stage"><div class="frame">{imgs}</div></div><div class="steps">{steps}</div></section>
 <div class="meta tl"><div class="count">1 / {len(rels)}</div><ul class="list">{items_html}</ul><div class="hint">scroll ↑↓ · ← → · <a href="#all">view all</a></div></div>
 <div class="meta br">{html.escape(blurb) if blurb else html.escape(title)}<br>By Jesse Hudson</div>
-<div class="page" id="all"><h1>{html.escape(title)}</h1>{f'<p class="lead">{html.escape(blurb)}</p>' if blurb else ''}{grid}</div>"""
+<div class="page" id="all"><h1>{html.escape(title)}</h1>{f'<p class="lead">{html.escape(blurb)}</p>' if blurb else ''}{video}{grid}</div>"""
             write(f"/{sec}/{slug}/", page(title, body, f"/{sec}/{slug}/", blurb or f"{title}, photography by Jesse Hudson.", f"/{sec}/", image=f"/img/{rels[0]}.jpg")); urls.append(f"/{sec}/{slug}/")
 
     # video, about, cv, contact
