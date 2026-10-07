@@ -72,8 +72,12 @@ EVENTS = [
     ("lorde", "Lorde at The Joint 2014", "lorde", ""),
     ("leroy-chops", "Leroy Chops 2014", "new-gallery-1", ""),
 ]
-# optional YouTube embeds shown on a gallery page, keyed by export/extra folder
-GALLERY_VIDEOS = {"shelter": [("KKmsvpkmudc", "Take a step inside.")]}
+# optional videos shown on a gallery page, keyed by export/extra folder.
+# src starting with "/" = self-hosted file from media/ (optional poster third); otherwise a YouTube id.
+GALLERY_VIDEOS = {"shelter": [
+    ("KKmsvpkmudc", "Take a step inside."),
+    ("/media/shelter-interview.mp4", "On SHELTER — cultural historian Brian Paco Álvarez", "/media/shelter-interview-poster.jpg"),
+]}
 SECTIONS = [("commercial", "Commercial", COMMERCIAL),
             ("conceptual", "Conceptual", CONCEPTUAL),
             ("events", "Events", EVENTS)]
@@ -209,7 +213,7 @@ nav a{display:block;color:var(--mute);transition:color .2s}nav a:hover,nav a.on{
 .lead{color:var(--mute);max-width:62ch;font-size:17px}
 .prose{max-width:66ch;font-size:16px;line-height:1.6}.prose p{margin:0 0 1em}.prose h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:2.4em 0 .8em}
 .video{margin:40px 0 0}.video h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 12px}
-.video iframe{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000}
+.video iframe,.video video{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000}
 .masonry{columns:3 320px;column-gap:14px;margin-top:40px}
 .masonry a{display:block;break-inside:avoid;margin:0 0 14px;background:var(--line)}
 .masonry img{display:block;width:100%;height:auto}
@@ -350,6 +354,8 @@ def build(images=True):
     open(os.path.join(OUT, "favicon.svg"), "w").write('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#111"/><text x="16" y="22" font-family="Helvetica,Arial" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">JH</text></svg>')
     open(os.path.join(OUT, "CNAME"), "w").write("jessehudsonphoto.com\n")
     open(os.path.join(OUT, ".nojekyll"), "w").write("")
+    media_src = os.path.join(ROOT, "media")
+    if os.path.isdir(media_src): shutil.copytree(media_src, os.path.join(OUT, "media"))
 
     # collect image jobs
     jobs, galleries = [], {}
@@ -395,8 +401,13 @@ def build(images=True):
             imgs = "".join(f'<img {"src" if k < 2 else "data-src"}="/img/{r}.jpg" alt=""{" class=on" if k == 0 else ""}>' for k, r in enumerate(rels))
             steps = "".join(f'<div class="step" data-i="{k}"></div>' for k in range(len(rels)))
             grid = gallery_html(folder, meta, rels)
-            video = "".join(f'<div class="video"><h2>{html.escape(label)}</h2><iframe src="https://www.youtube.com/embed/{vid}" loading="lazy" allowfullscreen title="{html.escape(label)}"></iframe></div>'
-                            for vid, label in GALLERY_VIDEOS.get(folder, []))
+            video = ""
+            for v in GALLERY_VIDEOS.get(folder, []):
+                if v[0].startswith("/"):
+                    poster = f' poster="{v[2]}"' if len(v) > 2 else ""
+                    video += f'<div class="video"><h2>{html.escape(v[1])}</h2><video src="{v[0]}"{poster} controls preload="metadata"></video></div>'
+                else:
+                    video += f'<div class="video"><h2>{html.escape(v[1])}</h2><iframe src="https://www.youtube.com/embed/{v[0]}" loading="lazy" allowfullscreen title="{html.escape(v[1])}"></iframe></div>'
             body = f"""<section class="show"><div class="stage"><div class="frame">{imgs}</div></div><div class="steps">{steps}</div></section>
 <div class="meta tl"><div class="count">1 / {len(rels)}</div><ul class="list">{items_html}</ul><div class="hint">scroll ↑↓ · ← → · <a href="#all">view all</a></div></div>
 <div class="meta br">{html.escape(blurb) if blurb else html.escape(title)}<br>By Jesse Hudson</div>
