@@ -213,6 +213,7 @@ nav a{display:block;color:var(--mute);transition:color .2s}nav a:hover,nav a.on{
 .lead{color:var(--mute);max-width:62ch;font-size:17px}
 .prose{max-width:66ch;font-size:16px;line-height:1.6}.prose p{margin:0 0 1em}.prose h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:2.4em 0 .8em}
 .video{margin:40px 0 0}.video h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 12px}
+.page.top{padding-bottom:40px}
 .video iframe,.video video{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000}
 .masonry{columns:3 320px;column-gap:14px;margin-top:40px}
 .masonry a{display:block;break-inside:avoid;margin:0 0 14px;background:var(--line)}
@@ -337,6 +338,12 @@ def write(path, content):
     os.makedirs(os.path.dirname(full), exist_ok=True)
     open(full, "w").write(content)
 
+def video_html(v):
+    if v[0].startswith("/"):
+        poster = f' poster="{v[2]}"' if len(v) > 2 else ""
+        return f'<div class="video"><h2>{html.escape(v[1])}</h2><video src="{v[0]}"{poster} controls preload="metadata"></video></div>'
+    return f'<div class="video"><h2>{html.escape(v[1])}</h2><iframe src="https://www.youtube.com/embed/{v[0]}" loading="lazy" allowfullscreen title="{html.escape(v[1])}"></iframe></div>'
+
 def gallery_html(folder, meta, rels):
     parts = []
     for rel in rels:
@@ -402,17 +409,14 @@ def build(images=True):
             imgs = "".join(f'<img {"src" if k < 2 else "data-src"}="/img/{r}.jpg" alt=""{" class=on" if k == 0 else ""}>' for k, r in enumerate(rels))
             steps = "".join(f'<div class="step" data-i="{k}"></div>' for k in range(len(rels)))
             grid = gallery_html(folder, meta, rels)
-            video = ""
-            for v in GALLERY_VIDEOS.get(folder, []):
-                if v[0].startswith("/"):
-                    poster = f' poster="{v[2]}"' if len(v) > 2 else ""
-                    video += f'<div class="video"><h2>{html.escape(v[1])}</h2><video src="{v[0]}"{poster} controls preload="metadata"></video></div>'
-                else:
-                    video += f'<div class="video"><h2>{html.escape(v[1])}</h2><iframe src="https://www.youtube.com/embed/{v[0]}" loading="lazy" allowfullscreen title="{html.escape(v[1])}"></iframe></div>'
-            body = f"""<section class="show"><div class="stage"><div class="frame">{imgs}</div></div><div class="steps">{steps}</div></section>
+            vids = GALLERY_VIDEOS.get(folder, [])
+            # first video opens the page above the showcase; the rest sit with the grid
+            video_top = f'<div class="page top"><h1>{html.escape(title)}</h1>{f"<p class=lead>{html.escape(blurb)}</p>" if blurb else ""}{video_html(vids[0])}</div>' if vids else ""
+            video = "".join(video_html(v) for v in vids[1:])
+            body = f"""{video_top}<section class="show"><div class="stage"><div class="frame">{imgs}</div></div><div class="steps">{steps}</div></section>
 <div class="meta tl"><div class="count">1 / {len(rels)}</div><ul class="list">{items_html}</ul><div class="hint">scroll ↑↓ · ← → · <a href="#all">{"view all + videos" if video else "view all"}</a></div></div>
 <div class="meta br">{html.escape(blurb) if blurb else html.escape(title)}<br>By Jesse Hudson</div>
-<div class="page" id="all"><h1>{html.escape(title)}</h1>{f'<p class="lead">{html.escape(blurb)}</p>' if blurb else ''}{video}{grid}</div>"""
+<div class="page" id="all">{'' if video_top else f'<h1>{html.escape(title)}</h1>' + (f'<p class="lead">{html.escape(blurb)}</p>' if blurb else '')}{video}{grid}</div>"""
             write(f"/{sec}/{slug}/", page(title, body, f"/{sec}/{slug}/", blurb or f"{title}, photography by Jesse Hudson.", f"/{sec}/", image=f"/img/{rels[0]}.jpg")); urls.append(f"/{sec}/{slug}/")
 
     # video, about, cv, contact

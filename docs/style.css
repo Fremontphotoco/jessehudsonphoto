@@ -44,6 +44,7 @@ nav a{display:block;color:var(--mute);transition:color .2s}nav a:hover,nav a.on{
 .lead{color:var(--mute);max-width:62ch;font-size:17px}
 .prose{max-width:66ch;font-size:16px;line-height:1.6}.prose p{margin:0 0 1em}.prose h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:2.4em 0 .8em}
 .video{margin:40px 0 0}.video h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 12px}
+.page.top{padding-bottom:40px}
 .video iframe,.video video{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000}
 .masonry{columns:3 320px;column-gap:14px;margin-top:40px}
 .masonry a{display:block;break-inside:avoid;margin:0 0 14px;background:var(--line)}
