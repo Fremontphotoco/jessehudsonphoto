@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 EXPORT = os.path.expanduser("~/Documents/Freelance/jessehudsonphoto.com Site Export/pages")
+EXTRA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "extra")  # galleries that aren't in the Squarespace export
 OUT = os.path.join(ROOT, "docs")          # GitHub Pages serves /docs
 IMG = os.path.join(OUT, "img")
 LARGE, THUMB = 1800, 640
@@ -29,6 +30,8 @@ COMMERCIAL = [
 ]
 CONCEPTUAL = [
     ("conceptual", "Conceptual", "conceptual", "Conceptual imagery and installations."),
+    ("shelter", "SHELTER", "shelter",
+     "SHELTER, 2023 to 2024: a life-size 1950s fallout bunker built inside a downtown Las Vegas storefront, sixty-five miles from the Nevada Test Site. An 800-square-foot immersive walk-through installation at Killing Trends."),
     ("crack-the-surface", "Crack The Surface", "crackthesurface",
      "Crack the Surface focuses on expressing the emotional suffocation that humans face due to various personal and global issues."),
     ("portraiture", "Portraiture", "portraiture", "A collection of portrait photography."),
@@ -81,6 +84,7 @@ def run(cmd):
 def gallery_items(folder):
     """Ordered list of local image paths for an export folder, using collection.json order."""
     d = os.path.join(EXPORT, folder)
+    if not os.path.isdir(d): d = os.path.join(EXTRA, folder)
     files = {f for f in os.listdir(d) if re.search(r'\.(jpe?g|png)$', f, re.I)}
     order = []
     cj = os.path.join(d, "collection.json")
@@ -362,6 +366,7 @@ def build(images=True):
 
     # home: scroll showcase of the strongest galleries
     featured = [("commercial", "Commercial Overview", "commercial-overview"), ("conceptual", "Conceptual", "conceptual"),
+                ("conceptual", "SHELTER", "shelter"),
                 ("conceptual", "Crack The Surface", "crackthesurface"), ("commercial", "Cocktails", "cocktails"),
                 ("conceptual", "Portraiture", "portraiture"), ("commercial", "Architecture", "architecture"),
                 ("events", "Event Overview", "nightlife-overview"),
