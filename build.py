@@ -233,6 +233,7 @@ footer a:hover{color:var(--fg)}
 JS = """
 (function(){
 var t=document.querySelector('.theme');try{var saved=localStorage.getItem('theme');if(saved)document.documentElement.setAttribute('data-theme',saved);}catch(e){}
+if(location.hash){var tgt=null;try{tgt=document.querySelector(location.hash)}catch(e){}if(tgt)setTimeout(function(){window.scrollTo(0,tgt.getBoundingClientRect().top+window.pageYOffset)},80);}
 if(t){t.addEventListener('click',function(){var cur=document.documentElement.getAttribute('data-theme');var dark=cur?cur==='dark':matchMedia('(prefers-color-scheme:dark)').matches;var next=dark?'light':'dark';document.documentElement.setAttribute('data-theme',next);try{localStorage.setItem('theme',next)}catch(e){}});}
 /* showcase: vertical = series (steps), horizontal = photos within the active series */
 var steps=[].slice.call(document.querySelectorAll('.step')),items=[].slice.call(document.querySelectorAll('.list li')),cnt=document.querySelector('.count'),openA=document.querySelector('.hint a.open');
@@ -409,7 +410,7 @@ def build(images=True):
                 else:
                     video += f'<div class="video"><h2>{html.escape(v[1])}</h2><iframe src="https://www.youtube.com/embed/{v[0]}" loading="lazy" allowfullscreen title="{html.escape(v[1])}"></iframe></div>'
             body = f"""<section class="show"><div class="stage"><div class="frame">{imgs}</div></div><div class="steps">{steps}</div></section>
-<div class="meta tl"><div class="count">1 / {len(rels)}</div><ul class="list">{items_html}</ul><div class="hint">scroll ↑↓ · ← → · <a href="#all">view all</a></div></div>
+<div class="meta tl"><div class="count">1 / {len(rels)}</div><ul class="list">{items_html}</ul><div class="hint">scroll ↑↓ · ← → · <a href="#all">{"view all + videos" if video else "view all"}</a></div></div>
 <div class="meta br">{html.escape(blurb) if blurb else html.escape(title)}<br>By Jesse Hudson</div>
 <div class="page" id="all"><h1>{html.escape(title)}</h1>{f'<p class="lead">{html.escape(blurb)}</p>' if blurb else ''}{video}{grid}</div>"""
             write(f"/{sec}/{slug}/", page(title, body, f"/{sec}/{slug}/", blurb or f"{title}, photography by Jesse Hudson.", f"/{sec}/", image=f"/img/{rels[0]}.jpg")); urls.append(f"/{sec}/{slug}/")
