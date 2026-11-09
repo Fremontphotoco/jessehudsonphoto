@@ -46,7 +46,6 @@ CONCEPTUAL = [
 EVENTS = [
     ("overview", "Event Overview", "nightlife-overview", "Nightlife and event photography in Las Vegas."),
     ("overview-2018", "Event Overview, 2014 to 2018", "events-overview", "Earlier event work."),
-    ("edc-2026", "EDC 2026", "edc-2026", ""),
     ("crykits-playhouse-2022", "Crykits Playhouse 2022", "crykits-playhouse-20220", ""),
     ("downtown-las-vegas", "Downtown Las Vegas", "downtown-las-vegas", ""),
     ("artbat", "ARTBAT, Techno Taco Tuesday 2019", "artbatmusic", ""),
@@ -360,7 +359,7 @@ def build(images=True):
     open(os.path.join(OUT, "style.css"), "w").write(CSS)
     open(os.path.join(OUT, "app.js"), "w").write(JS)
     open(os.path.join(OUT, "favicon.svg"), "w").write('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#111"/><text x="16" y="22" font-family="Helvetica,Arial" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">JH</text></svg>')
-    open(os.path.join(OUT, "CNAME"), "w").write("jessehudsonphoto.com\n")
+    open(os.path.join(OUT, "CNAME"), "w").write("www.jessehudsonphoto.com\n")
     open(os.path.join(OUT, ".nojekyll"), "w").write("")
     media_src = os.path.join(ROOT, "media")
     if os.path.isdir(media_src): shutil.copytree(media_src, os.path.join(OUT, "media"))
@@ -390,7 +389,7 @@ def build(images=True):
                 ("conceptual", "Art", "art"),
                 ("commercial", "Commercial Overview", "commercial-overview"), ("commercial", "Cocktails", "cocktails"),
                 ("commercial", "Architecture", "architecture"), ("commercial", "Product", "product"),
-                ("events", "Event Overview", "nightlife-overview"), ("events", "EDC 2026", "edc-2026")]
+                ("events", "Event Overview", "nightlife-overview")]
     slug_of = {folder: f"/{sec}/{slug}/" for sec, _, items in SECTIONS for slug, _, folder, _ in items}
     slides = [dict(rels=galleries[f], title=t, href=slug_of[f]) for sec, t, f in featured if cover(f)]
     body = showcase(slides, corner_br="Conceptual · Commercial · Events<br>By Jesse Hudson")
